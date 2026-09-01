@@ -13,6 +13,10 @@ import os
 import torch
 from pg_ai_utils import detect_env, load_secrets, WandbLogger
 from config import LocalConfig
+import torchvision.transforms as transforms
+import torchvision.transforms.functional as TF
+
+from pg_ai_utils.datasetClass import get_data_loaders
 
 
 def main():
@@ -31,6 +35,16 @@ def main():
     # 3. Instantiate LocalConfig and check hardware & paths
     cfg = LocalConfig()
     cfg.print_summary()
+
+    # creating data loaders from datasetClass
+    transform = transforms.Compose([
+        transforms.Lambda(lambda img: img.getchannel('R')),
+        transforms.Lambda(lambda img: TF.crop(img, top=0, left=0, height=224, width=224)),
+        transforms.ToTensor()
+    ])
+
+    train_loader, val_loader, test_loader = get_data_loaders(cfg, transform=transform)
+    print("przeszło przez get_data_loaders")
 
     # PyTorch 2 + 2 tensor test on resolved device (CUDA / MPS / CPU)
     tensor_a = torch.tensor([2.0], device=cfg.DEVICE)
