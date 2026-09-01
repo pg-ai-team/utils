@@ -1,46 +1,46 @@
 {
   "AsymptoticControls": [
-    "Asymptomatic controls"
+    "Asymptomaticcontrols"
   ],
   "DigestiveSystem": [
     "Cholangiocarcinoma",
-    "Colorectal cancer",
-    "Esophageal carcinoma",
-    "Hepatocellular carcinoma",
-    "Pancreatic cancer"
+    "Colorectalcancer",
+    "Esophagealcarcinoma",
+    "Hepatocellularcarcinoma",
+    "Pancreaticcancer"
   ],
   "ReproductiveUrinary": [
-    "Endometrial cancer",
-    "Ovarian cancer",
-    "Prostate cancer",
-    "Renal cell cancer",
-    "Urothelial cancer"
+    "Endometrialcancer",
+    "Ovariancancer",
+    "Prostatecancer",
+    "Renalcellcancer",
+    "Urothelialcancer"
   ],
   "SkinSoftTissue": [
-    "Breast cancer",
-    "Former sarcoma",
+    "Breastcancer",
+    "Formersarcoma",
     "Melanoma",
     "Sarcoma"
   ],
   "Respiratory": [
-    "Head and neck cancer",
-    "Non-small-cell lung cancer"
+    "Headandneckcancer",
+    "Non-small-celllungcancer"
   ],
   "BloodLymphaticSystem": [
     "Lymphoma",
-    "Multiple Myeloma"
+    "MultipleMyeloma"
   ],
   "Neurological": [
     "Glioma"
   ],
   "other": [
-    "Angina pectoris",
-    "Bowel disease",
+    "Anginapectoris",
+    "Boweldisease",
     "Hematuria",
-    "Medically-intractable epilepsy",
-    "Multiple sclerosis",
+    "Medically-intractableepilepsy",
+    "Multiplesclerosis",
     "nSTEMI",
-    "Pancreatic diseases",
-    "Pulmonary Hypertension"
+    "Pancreaticdiseases",
+    "PulmonaryHypertension"
   ]
 }
