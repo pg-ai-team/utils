@@ -11,12 +11,9 @@ Tests:
 
 import os
 import torch
-from pg_ai_utils import detect_env, load_secrets, WandbLogger
-from config import LocalConfig
 import torchvision.transforms as transforms
-import torchvision.transforms.functional as TF
-
-from pg_ai_utils.datasetClass import get_data_loaders
+from pg_ai_utils import detect_env, load_secrets, WandbLogger, get_data_loaders, red_channel
+from config import LocalConfig
 
 
 def main():
@@ -36,15 +33,19 @@ def main():
     cfg = LocalConfig()
     cfg.print_summary()
 
-    # creating data loaders from datasetClass
-    transform = transforms.Compose([
-        transforms.Lambda(lambda img: img.getchannel('R')),
-        transforms.Lambda(lambda img: TF.crop(img, top=0, left=0, height=224, width=224)),
-        transforms.ToTensor()
-    ])
-
-    train_loader, val_loader, test_loader = get_data_loaders(cfg, transform=transform)
-    print("przeszło przez get_data_loaders")
+    # Optional: grouped DataLoaders (only when the dataset is available locally)
+    if cfg.GROUPS and os.path.isdir(cfg.DATA_DIR):
+        eval_transform = transforms.Compose([red_channel, transforms.ToTensor()])
+        train_loader, val_loader, test_loader = get_data_loaders(
+            cfg, train_transform=eval_transform, eval_transform=eval_transform
+        )
+        images, labels = next(iter(train_loader))
+        print(
+            f"[data] DataLoaders OK: batch {tuple(images.shape)}, "
+            f"classes {train_loader.dataset.class_names}"
+        )
+    else:
+        print(f"[data] Skipping DataLoader test (no GROUPS or missing DATA_DIR '{cfg.DATA_DIR}')")
 
     # PyTorch 2 + 2 tensor test on resolved device (CUDA / MPS / CPU)
     tensor_a = torch.tensor([2.0], device=cfg.DEVICE)
