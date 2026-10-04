@@ -1,0 +1,17 @@
+{
+  "NonSmallCellLungCancer": [
+    "Non-small-celllungcancer"
+  ],
+  "OvarianCancer": [
+    "Ovariancancer"
+  ],
+  "Glioma": [
+    "Glioma"
+  ],
+  "PancreaticCancer": [
+    "Pancreaticcancer"
+  ],
+  "HeadAndNeckCancer": [
+    "Headandneckcancer"
+  ]
+}
