@@ -20,8 +20,8 @@ class BaseConfig:
 
     Usage:
         class Config(BaseConfig):
-            DATASET_NAME: str = "skykuba/implatelet"
-            NUM_CLASSES: int = 2
+            DATASET_NAME: str = "skykuba/kegg-pathway-images"
+            GROUPS_FILE: str = "organ_systems"   # optional: bundled preset or JSON path
             ...
 
         cfg = Config()
@@ -29,7 +29,7 @@ class BaseConfig:
     """
 
     # ── Dataset (must be set by subclass) ──────────────────────────────
-    DATASET_NAME: str = ""          # e.g. "skykuba/implatelet"
+    DATASET_NAME: str = ""          # e.g. "skykuba/kegg-pathway-images"
     DATASET_SUBPATH: str = ""       # subfolder inside the downloaded dataset
     GROUPS_FILE: str = "../dataClasses.json"
     GROUPS: Dict[str, List[str]] = field(init=False)
