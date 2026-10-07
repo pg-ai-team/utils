@@ -129,7 +129,7 @@ from pg_ai_utils import BaseConfig
 @dataclass
 class Config(BaseConfig):
     # Dataset metadata (used for Kaggle inputs & kagglehub resolution)
-    DATASET_NAME: str = "skykuba/implatelet"
+    DATASET_NAME: str = "skykuba/kegg-pathway-images"
     DATASET_SUBPATH: str = "KEGG_Pathway_Image/Images"
 
     # Architecture & Hyperparameters
@@ -189,6 +189,54 @@ def main():
 if __name__ == "__main__":
     main()
 ```
+
+---
+
+## Dataset Utilities: Grouped Classes (`dataset.py`, `groups.py`)
+
+For the KEGG pathway image dataset (`<Disease>_<SampleID>.png`, e.g. `Breastcancer_MGH-BrCa-86-TR1197.png`),
+diseases can be merged into class groups and split into train / val / test.
+
+```python
+from dataclasses import dataclass, field
+import torchvision.transforms as T
+from pg_ai_utils import BaseConfig, get_data_loaders, red_channel, list_group_presets
+
+@dataclass
+class Config(BaseConfig):
+    DATASET_NAME: str = "skykuba/kegg-pathway-images"
+    DATASET_SUBPATH: str = "Images"
+    GROUPS_FILE: str = "organ_systems"           # bundled preset or path to your own JSON
+    EXCLUDE_GROUPS: list = field(default_factory=lambda: ["other"])
+
+cfg = Config()                                  # cfg.GROUPS loaded, cfg.NUM_CLASSES derived
+train_tf = T.Compose([red_channel, T.ToTensor()])   # add augmentation here (train only)
+eval_tf = T.Compose([red_channel, T.ToTensor()])
+train_loader, val_loader, test_loader = get_data_loaders(cfg, train_tf, eval_tf)
+print(train_loader.dataset.class_names)
+```
+
+**Groups** are `{group_name: [disease, ...]}`, where disease = the file-name prefix. Each disease may belong to
+only one group, and matching is exact (no substrings). Bundled presets (`list_group_presets()`) live in
+`pg_ai_utils/group_presets/`:
+
+| Preset | Classes |
+|---|---|
+| `organ_systems` | 8 groups by organ system (+ `AsymptomaticControls`, `other`) |
+| `top5_tumor_types` | NSCLC, ovarian, glioma, pancreatic, head & neck (≥ 100 samples each) |
+
+Instead of `GROUPS_FILE`, `GROUPS` can be defined inline in the subclass. Without either, `BaseConfig` works as
+before (`GROUPS = {}`, `NUM_CLASSES = 0` unless you set it).
+
+**Split options** (fields of `BaseConfig`; the split is stratified per group and seeded with `SEED`):
+
+| Field | Default | Effect |
+|---|---|---|
+| `VAL_SPLIT`, `TEST_SPLIT` | 0.1, 0.1 | Fractions, applied within each group |
+| `EXCLUDE_GROUPS` / `EXCLUDE_DISEASES` | `[]` | Removed from the dataset entirely |
+| `TRAIN_ONLY_GROUPS` | `[]` | Used for training, never in val / test |
+| `HOLDOUT_DISEASES` | `[]` | Only in test, labelled with their group (leave-one-group-out: loop over diseases) |
+| `NUM_CLASSES` | 0 | 0 = number of groups minus `EXCLUDE_GROUPS`. Set explicitly to override |
 
 ---
 

@@ -6,10 +6,11 @@ Each project subclasses this and fills in dataset-specific fields.
 
 import os
 import torch
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, fields
 from typing import Any
 
 from .env import detect_env
+from .groups import load_groups, validate_groups
 
 
 @dataclass
@@ -19,8 +20,8 @@ class BaseConfig:
 
     Usage:
         class Config(BaseConfig):
-            DATASET_NAME: str = "skykuba/implatelet"
-            NUM_CLASSES: int = 2
+            DATASET_NAME: str = "skykuba/kegg-pathway-images"
+            GROUPS_FILE: str = "organ_systems"   # optional: bundled preset or JSON path
             ...
 
         cfg = Config()
@@ -28,8 +29,21 @@ class BaseConfig:
     """
 
     # ── Dataset (must be set by subclass) ──────────────────────────────
-    DATASET_NAME: str = ""          # e.g. "skykuba/implatelet"
+    DATASET_NAME: str = ""          # e.g. "skykuba/kegg-pathway-images"
     DATASET_SUBPATH: str = ""       # subfolder inside the downloaded dataset
+
+    # ── Class groups (optional, used by pg_ai_utils.dataset) ───────────
+    GROUPS_FILE: str = ""           # preset name (see list_group_presets()) or JSON path; "" = none
+    GROUPS: dict[str, list[str]] = field(default_factory=dict)  # or define the mapping inline
+    NUM_CLASSES: int = 0            # 0 = derived from GROUPS (minus EXCLUDE_GROUPS)
+
+    # ── Dataset split (optional, used by pg_ai_utils.dataset) ──────────
+    VAL_SPLIT: float = 0.1
+    TEST_SPLIT: float = 0.1
+    EXCLUDE_GROUPS: list[str] = field(default_factory=list)     # dropped from the dataset
+    EXCLUDE_DISEASES: list[str] = field(default_factory=list)   # dropped from the dataset
+    TRAIN_ONLY_GROUPS: list[str] = field(default_factory=list)  # never in val / test
+    HOLDOUT_DISEASES: list[str] = field(default_factory=list)   # test only (leave-one-group-out)
 
     # ── Paths (auto-resolved per environment) ──────────────────────────
     DATA_DIR: str = field(init=False)
@@ -47,6 +61,12 @@ class BaseConfig:
         self.DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.DATA_DIR = self._resolve_data_dir()
         self.SAVE_DIR = self._resolve_save_dir()
+
+        if self.GROUPS_FILE and not self.GROUPS:
+            self.GROUPS = load_groups(self.GROUPS_FILE, search_dirs=(self.DATA_DIR,))
+        validate_groups(self.GROUPS)
+        if not self.NUM_CLASSES and self.GROUPS:
+            self.NUM_CLASSES = len([g for g in self.GROUPS if g not in self.EXCLUDE_GROUPS])
 
     def _resolve_data_dir(self) -> str:
         if self.ENV == "kaggle":
@@ -77,11 +97,11 @@ class BaseConfig:
     def to_dict(self) -> dict[str, Any]:
         """Serialize config to flat dict (for wandb.init config=)."""
         result = {}
-        for key in self.__dataclass_fields__:
-            val = getattr(self, key)
+        for f in fields(self):
+            val = getattr(self, f.name)
             if isinstance(val, torch.device):
                 val = str(val)
-            result[key.lower()] = val
+            result[f.name.lower()] = val
         return result
 
     def print_summary(self):
