@@ -45,6 +45,13 @@ class BaseConfig:
     TRAIN_ONLY_GROUPS: list[str] = field(default_factory=list)  # never in val / test
     HOLDOUT_DISEASES: list[str] = field(default_factory=list)   # test only (leave-one-group-out)
 
+    # ── Sample filters by metadata ──
+    SAMPLE_INFO_FILE: str = ""      # path to sampleInfo.csv; "" = look for it in DATA_DIR and its parent
+    EXCLUDE_LOCATIONS: list[str] = field(default_factory=list)  # RealLocation values, e.g. ["Institute 5"] (NKI)
+    MIN_LIB_SIZE: int = 0           # drop samples with fewer reads (lib.size), e.g. 100000 = 100k reads
+    SPLIT_SOURCE: str = "random"    # "random" = stratified (VAL_SPLIT/TEST_SPLIT/SEED); "sample_info" = original
+                                    # split from sampleInfo.csv (isTraining/isValidation/isTest)
+
     # ── Paths (auto-resolved per environment) ──────────────────────────
     DATA_DIR: str = field(init=False)
     SAVE_DIR: str = field(init=False)

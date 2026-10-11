@@ -238,6 +238,29 @@ before (`GROUPS = {}`, `NUM_CLASSES = 0` unless you set it).
 | `HOLDOUT_DISEASES` | `[]` | Only in test, labelled with their group (leave-one-group-out: loop over diseases) |
 | `NUM_CLASSES` | 0 | 0 = number of groups minus `EXCLUDE_GROUPS`. Set explicitly to override |
 
+**Filters by sample metadata** (fields of `BaseConfig`). The file name holds only the disease and the sample id, so
+filters by hospital or sequencing depth read `sampleInfo.csv` and join it on the sample id. 
+They are applied before the split, so every subset is split the same way.
+
+| Field | Default | Effect |
+|---|---|---|
+| `EXCLUDE_LOCATIONS` | `[]` | Samples whose `RealLocation` is listed are removed, e.g. `["Institute 5"]` |
+| `MIN_LIB_SIZE` | 0 | Samples with fewer reads (`lib.size`) are removed, e.g. `100000` |
+| `SAMPLE_INFO_FILE` | `""` | Path to `sampleInfo.csv`; `""` = look for it in `DATA_DIR` and its parent folder |
+| `SPLIT_SOURCE` | `"random"` | `"random"` = stratified split (`VAL_SPLIT`, `TEST_SPLIT`, `SEED`); `"sample_info"` = original split from the columns `isTraining` / `isValidation` / `isTest` (`VAL_SPLIT`, `TEST_SPLIT`, `SEED` ignored) |
+
+```python
+@dataclass
+class Config(BaseConfig):
+    GROUPS_FILE: str = "top5_tumor_types"
+    SAMPLE_INFO_FILE: str = "../dataset-generator/data/raw/sampleInfo.csv"
+    EXCLUDE_LOCATIONS: list = field(default_factory=lambda: ["Institute 5"])  
+    MIN_LIB_SIZE: int = 100000                                              
+```
+
+Every sample must be in exactly one of the three columns.
+`TRAIN_ONLY_GROUPS` and `HOLDOUT_DISEASES` still move samples to train / test.
+
 ---
 
 ## Projects Using `utils`
